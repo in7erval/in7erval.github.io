@@ -66,15 +66,33 @@
 
         let width = 1080;
         let height = 1384;
+        let action = 1;
+        let startOffset = "undefined";
+        let dots = "...";
         window.addEventListener('scroll', function() {
-            let img = document.getElementById('image');
-            if (img.width <= 0) {
-                document.body.insertAdjacentHTML("beforeend", "<button><a href=\"test.html\">press me</a></button>");
-                return ;
+            if (action == 1) {
+                document.body.insertAdjacentHTML("beforeend", "<h1>$> Hello!</h1>");
+            } else if (action == 2) {
+                document.body.insertAdjacentHTML("beforeend", "<h1>$> Call me interval:) Why so? Wait a bit...</h1>");
+            } else if (action < 20) {
+                    document.body.insertAdjacentHTML("beforeend", "<h1>$> a bit...</h1>");
+            }  else if (action < 40) {
+                    document.body.insertAdjacentHTML("beforeend", `<h1>$> ${dots}</h1>`);
+                    dots += "...";
+            } else if (action == 40) {
+                document.body.insertAdjacentHTML("beforeend", "<div id=\"imageContainer\"style=\"text-align: center; overflow:auto;\"> <img onclick=\"bigger();\" id=\"image\" src=\"photo.jpg\" alt=\"TestPhoto\" aligh=\"middle\"> </div>");
+            } else {
+                if (startOffset == "undefined") startOffset = pageYOffset;
+                let img = document.getElementById('image');
+                if (img.width <= 0) {
+                    document.body.insertAdjacentHTML("beforeend", "<button><h1><a href=\"test.html\">press me</a></h1></button>");
+                    return ;
+                }
+                img.width -= 5;
+                img.heigth -= 5;
             }
-
-            img.width -= pageYOffset * 1.1;
-            img.heigth -= pageYOffset * 1.1;
+            if (action < 41)
+                action++;
             document.getElementById('showScroll').innerHTML = pageYOffset + 'px';
         });
 
@@ -97,11 +115,14 @@
     </script>
 </head>
 <body>
+    <h1>$> Scroll to see magic!</h1>
+    <!--
     <h1>$> Hello!</h1>
     <h1>$> Call me interval:) Why so? Wait a bit...</h1>
-    <h2>$> Just scroll down...</h2>
+    <h1>$> Just scroll down...</h1>
     <div id="imageContainer"style="text-align: center; overflow:auto;"> <img onclick="bigger();" id="image" src="photo.jpg" alt="TestPhoto" aligh="middle"> </div>
-    <!-- <div><p1 style="color:red;" id="showScroll"></p1></div> -->
+    -->
+    <div><p1 style="color:red;" id="showScroll"></p1></div>
     <!-- <button ><a href="test.html">Test func</a></button> -->
 </body>
 </html>
