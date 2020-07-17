@@ -1,24 +1,95 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Test</title>
+    <meta charset="utf-8">
+    <title>in7erval</title>
+    <style type="text/css">
+        body {
+            background-color: #222222;
+            background-color: #1f1b24;
+            background-color: #10041c;
+        }
+    </style>
+    <!--
+    background-color: #3700b3;
+    background-color: #03dac5;
+    # define A_BLUE   0x00008b
+    # define B_BLUE   0x110573
+    # define C_BLUE   0x16085b
+    # define D_BLUE   0x170a45
+    # define E_BLUE   0x16082f
+    # define F_BLUE   0x10041c
+    # define BLACK    0x000000
+    # define A_VIOLET 0x8b00ff
+    # define B_VIOLET 0xa648ff
+    # define C_VIOLET 0xbd71ff
+    # define D_VIOLET 0xd195ff
+    # define E_VIOLET 0xe2b9ff
+    # define F_VIOLET 0xf1dcff
+    # define WHITE    0xffffff
+    <h1 style="border:5px solid Tomato; font-size:300%; font-family:verdana; text-align:left; color:#ffffff;">Verdana: It works!</h1>
+    <h1 style="border:4px solid Orange; font-size:300%; font-family:courier; text-align:left; color:#ffffff;">Courier: It works!</h1>
+    <h1 style="border:3px solid DodgerBlue; font-size:300%; font-family:helvetica; text-align:left; color:#ffffff;">Helvetica: It works!</h1>
+    <h1 style="border:2px solid MediumSeaGreen; font-size:300%; font-family:tahoma; text-align:left; color:#ffffff;">Tahoma: It works!</h1>
+    <h1 style="border:1px solid StateBlue; font-size:300%; font-family:menlo; text-align:left; color:#ffffff;">Menlo: It works!</h1>
+        <hr>
+        <br>
+    <div style="width:200px; background:#ccc;">ABC</div>
+    <a style="color:red; background-color:yellow;"href="https://www.yandex.ru">ya.ru</a>
+    <ol>
+        <li title="first">a</li>
+        <li title="second">b</li>
+    </ol>
+    <p><ins>Don't</ins> <del>forget</del> <mark>it</mark>!!!</p>
+    -->
+    <script type="text/javascript">
+        function createTable() {
+            document.write ('<table width="100%" border="1">');
+            for (i=1; i<6; i++) {
+                document.writeln("<tr>");
+                for (j=1; j<6; j++) document.write('<td style="color: red; text-align: center;">' + i + j + '<\/td>');
+                document.writeln("<\/tr>");
+            }
+            document.write ("<\/table> ");
+        }
+
+        let width = 1080;
+        let height = 1384;
+        window.addEventListener('scroll', function() {
+            let img = document.getElementById('image');
+            if (img.width <= 0) {
+                document.body.insertAdjacentHTML("beforeend", "<button><a href=\"test.html\">press me</a></button>");
+                return ;
+            }
+
+            img.width -= pageYOffset * 1.1;
+            img.heigth -= pageYOffset * 1.1;
+            document.getElementById('showScroll').innerHTML = pageYOffset + 'px';
+        });
+
+
+        function populate() {
+            while(true) {
+                let windowRelativeBottom = document.documentElement.getBoundingClientRect().bottom;
+                if (windowRelativeBottom > document.documentElement.clientHeight + 100) break;
+                document.body.insertAdjacentHTML("beforeend", "<div id=\"imageContainer\"style=\"text-align: center; overflow:auto;\"> <img onclick=\"bigger();\" id=\"image\" src=\"photo.jpg\" alt=\"TestPhoto\" width=\"54\" height=\"69\" aligh=\"middle\"> </div>");
+
+            }
+        }
+
+        function endless() {
+            window.addEventListener('scroll', populate);
+            populate(); // инициализация документа
+        }
+
+
+    </script>
 </head>
 <body>
-<hr>
-<h1 style="border:5px solid Tomato; font-size:300%; background-color:Orange; font-family:verdana; text-align:left; color:#ffffff;">Verdana: It works!</h1>
-<h1 style="border:4px solid Orange; font-size:300%; font-family:courier; text-align:left;">Courier: It works!</h1>
-<h1 style="border:3px solid DodgerBlue; font-size:300%; font-family:helvetica; text-align:left;">Helvetica: It works!</h1>
-<h1 style="border:2px solid MediumSeaGreen; font-size:300%; font-family:tahoma; text-align:left;">Tahoma: It works!</h1>
-<h1 style="border:1px solid StateBlue; font-size:300%; font-family:menlo; text-align:left;">Menlo: It works!</h1>
-<hr>
-<img src="photo.jpg" alt="TestPhoto" width="108" height="138">
-<br>
-<div style="width:200px; background:#ccc;">ABC</div>
-<a style="color:red; background-color:yellow;"href="https://www.yandex.ru">ya.ru</a>
-<ol>
-<li title="first">a</li>
-<li title="second">b</li>
-</ol>
-<p><ins>Don't</ins> <del>forget</del> <mark>it</mark>!!!</p>
+    <h1 style="font-family:monaco; text-align:left; color:#0bda51">$> Hello!</h1>
+    <h1 style="font-family:monaco; text-align:left; color:#0bda51">$> Call me interval:) Why so? Wait a bit...</h1>
+    <div id="imageContainer"style="text-align: center; overflow:auto;"> <img onclick="bigger();" id="image" src="photo.jpg" alt="TestPhoto" aligh="middle"> </div>
+    <div><p1 style="color:red;" id="showScroll"></p1></div>
+    <!-- <button ><a href="test.html">Test func</a></button> -->
 </body>
 </html>
