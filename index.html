@@ -77,10 +77,12 @@
                 document.body.insertAdjacentHTML("beforeend", "<h1>$> Call me interval:) Why so? Wait a bit...</h1>");
             } else if (action == 3) {
                     document.body.insertAdjacentHTML("beforeend", "<h1>$> a bit...</h1>");
-            }  else if (action < 40) {
-                    document.body.insertAdjacentHTML("beforeend", `<h1>$> ${dots}</h1>`);
-                    dots += ".";
-            } else if (action == 40) {
+            }  else if (action < 100) {
+                    if (action % 3 == 0) {
+                        document.body.insertAdjacentHTML("beforeend", `<h1>$> ${dots}</h1>`);
+                        dots += ".";
+                    }
+            } else if (action == 100) {
                 document.body.insertAdjacentHTML("beforeend", `<div id="imageContainer" style="text-align: center; overflow:auto;"> <img onclick="bigger();" id="image${id}" src="photo.jpg" alt="TestPhoto" aligh="middle"> </div>`);
             } else {
                 if (startOffset == "undefined") startOffset = pageYOffset;
@@ -102,7 +104,7 @@
                     img.heigth -= 5;
                 }
             }
-            if (action < 41)
+            if (action < 101)
                 action++;
             // document.getElementById('showScroll').innerHTML = pageYOffset + 'px';
         });
