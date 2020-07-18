@@ -86,21 +86,21 @@
         let dots = "...";
         let id = 0;
         window.addEventListener('scroll', function() {
-            if (action == 1) {
+            if (action === 1) {
                 document.body.insertAdjacentHTML("beforeend", "<h1>$> Hello!</h1>");
-            } else if (action == 2) {
+            } else if (action === 2) {
                 document.body.insertAdjacentHTML("beforeend", "<h1>$> Call me interval:) Why so? Wait a bit...</h1>");
-            } else if (action == 3) {
+            } else if (action === 3) {
                     document.body.insertAdjacentHTML("beforeend", "<h1>$> a bit...</h1>");
             }  else if (action < 100) {
-                    if (action % 3 == 0) {
+                    if (action % 3 === 0) {
                         document.body.insertAdjacentHTML("beforeend", `<h1>$> ${dots}</h1>`);
                         dots += ".";
                     }
-            } else if (action == 100) {
+            } else if (action === 100) {
                 document.body.insertAdjacentHTML("beforeend", `<div id="imageContainer" style="text-align: center; overflow:auto;"> <img onclick="bigger();" id="image${id}" src="photo.jpg" alt="TestPhoto" aligh="middle"> </div>`);
             } else {
-                if (startOffset == "undefined") startOffset = pageYOffset;
+                if (startOffset === "undefined") startOffset = pageYOffset;
                 let img = document.getElementById(`image${id}`);
                 if (img.width <= 0) {
                     document.body.insertAdjacentHTML("beforeend", "<br><br><br><br><br>");
