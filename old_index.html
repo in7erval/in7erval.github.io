@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>in7erval</title>
+	<style type="text/css">
+		body {
+			background-color: #222222;
+			background-color: #1f1b24;
+			background-color: #10041c;
+		}
+		h1 {
+			font-family:monaco;
+			text-align:left;
+			color:#0bda51;
+		}
+		h2 {
+			font-family:monaco;
+			text-align:left;
+			color:#0bda51;
+		}
+
+	</style>
+	<!-- Yandex.Metrika counter -->
+	<script type="text/javascript" >
+        (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+            m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+        (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+        ym(65702845, "init", {
+            clickmap:true,
+            trackLinks:true,
+            accurateTrackBounce:true,
+            webvisor:true
+        });
+	</script>
+	<noscript><div><img src="https://mc.yandex.ru/watch/65702845" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+	<!-- /Yandex.Metrika counter -->
+	<!--
+	background-color: #3700b3;
+	background-color: #03dac5;
+	# define A_BLUE   0x00008b
+	# define B_BLUE   0x110573
+	# define C_BLUE   0x16085b
+	# define D_BLUE   0x170a45
+	# define E_BLUE   0x16082f
+	# define F_BLUE   0x10041c
+	# define BLACK    0x000000
+	# define A_VIOLET 0x8b00ff
+	# define B_VIOLET 0xa648ff
+	# define C_VIOLET 0xbd71ff
+	# define D_VIOLET 0xd195ff
+	# define E_VIOLET 0xe2b9ff
+	# define F_VIOLET 0xf1dcff
+	# define WHITE    0xffffff
+	<h1 style="border:5px solid Tomato; font-size:300%; font-family:verdana; text-align:left; color:#ffffff;">Verdana: It works!</h1>
+	<h1 style="border:4px solid Orange; font-size:300%; font-family:courier; text-align:left; color:#ffffff;">Courier: It works!</h1>
+	<h1 style="border:3px solid DodgerBlue; font-size:300%; font-family:helvetica; text-align:left; color:#ffffff;">Helvetica: It works!</h1>
+	<h1 style="border:2px solid MediumSeaGreen; font-size:300%; font-family:tahoma; text-align:left; color:#ffffff;">Tahoma: It works!</h1>
+	<h1 style="border:1px solid StateBlue; font-size:300%; font-family:menlo; text-align:left; color:#ffffff;">Menlo: It works!</h1>
+		<hr>
+		<br>
+	<div style="width:200px; background:#ccc;">ABC</div>
+	<a style="color:red; background-color:yellow;"href="https://www.yandex.ru">ya.ru</a>
+	<ol>
+		<li title="first">a</li>
+		<li title="second">b</li>
+	</ol>
+	<p><ins>Don't</ins> <del>forget</del> <mark>it</mark>!!!</p>
+	-->
+	<script type="text/javascript">
+        function createTable() {
+            document.write ('<table width="100%" border="1">');
+            for (i=1; i<6; i++) {
+                document.writeln("<tr>");
+                for (j=1; j<6; j++) document.write('<td style="color: red; text-align: center;">' + i + j + '<\/td>');
+                document.writeln("<\/tr>");
+            }
+            document.write ("<\/table> ");
+        }
+
+        function sleep(milliseconds) {
+            const date = Date.now();
+            let currentDate = null;
+            do {
+                currentDate = Date.now();
+            } while (currentDate - date < milliseconds);
+        }
+
+        let countV = 0;
+
+        function redirect_to(link) {
+            let sec = 5;
+            document.body.insertAdjacentHTML("beforeend", `<h1 id="redirect"></h1>`);
+            let redirect = document.getElementById("redirect");
+            while (true) {
+                document.body.insertAdjacentHTML("beforeend", `<h1 id="redirect">Перенаправление через ${sec--} секунд</h1>`);
+                document.body.insertAdjacentHTML("beforeend", `<br><br>`);
+                if (sec <= 0)
+                    break;
+                sleep(1000);
+            }
+            window.location.href = link;
+        }
+
+        let width = 1080;
+        let height = 1384;
+        let action = 1;
+        let startOffset = "undefined";
+        let dots = "...";
+        let id = 0;
+        window.addEventListener('scroll', function() {
+            if (action === 1) {
+                document.body.insertAdjacentHTML("beforeend", "<h1>$> Hello!</h1>");
+                action++;
+            } else if (action === 2) {
+                document.body.insertAdjacentHTML("beforeend", "<h1>$> Call me interval:) Why so? Wait a bit...</h1>");
+                action++;
+            } else if (action === 3) {
+                document.body.insertAdjacentHTML("beforeend", "<h1>$> a bit...</h1>");
+                action++;
+            }  else if (action < 100) {
+                if (action % 3 === 0) {
+                    document.body.insertAdjacentHTML("beforeend", `<h1>$> ${dots}</h1>`);
+                    dots += ".";
+                }
+                action++;
+            } else if (action < 130) {
+                document.body.insertAdjacentHTML("beforeend", "<br>");
+                action++;
+                //document.body.insertAdjacentHTML("beforeend", `<div id="imageContainer" style="text-align: center; overflow:auto;"> <img onclick="bigger();" id="image${id}" src="photo.jpg" alt="TestPhoto" aligh="middle"> </div>`);
+            } else if (action === 130) {
+                document.body.insertAdjacentHTML("beforeend", "<h1>$> You are welcome!</h1>");
+                sleep(500);
+                window.location.href = "page.html";
+                action = 0;
+            }
+            /* else {
+                //window.location.href = "test.html";
+
+                if (startOffset === "undefined") startOffset = pageYOffset;
+                let img = document.getElementById(`image${id}`);
+                if (img.width <= 0) {
+                    document.body.insertAdjacentHTML("beforeend", "<br><br><br><br><br>");
+                    action = 1;
+                    dots = "...";
+                    startOffset = "undefined";
+                    id++;
+                    // document.body.insertAdjacentHTML("beforeend", "<h1><a href=\"https://github.com/in7erval\">press me</a></h1>");
+                    return ;
+                }
+                if (pageYOffset - startOffset < 0) {
+                    img.width += 5;
+                    img.heigth += 5;
+                } else {
+                    img.width -= 5;
+                    img.heigth -= 5;
+                    img.style.opacity -= 0.05;
+                }
+
+            }
+            */
+            // document.getElementById('showScroll').innerHTML = pageYOffset + 'px';
+        });
+
+
+        function populate() {
+            while(true) {
+                let windowRelativeBottom = document.documentElement.getBoundingClientRect().bottom;
+                if (windowRelativeBottom > document.documentElement.clientHeight + 100) break;
+                document.body.insertAdjacentHTML("beforeend", "<div id=\"imageContainer\"style=\"text-align: center; overflow:auto;\"> <img onclick=\"bigger();\" id=\"image\" src=\"photo.jpg\" alt=\"TestPhoto\" width=\"54\" height=\"69\" aligh=\"middle\"> </div>");
+
+            }
+        }
+
+        function endless() {
+            window.addEventListener('scroll', populate);
+            populate(); // инициализация документа
+        }
+
+
+	</script>
+</head>
+<body>
+<p style="color:grey; font-size:50%;">v1.1</p>
+<h1>$> Scroll to see magic!</h1>
+<!--
+<h1>$> Hello!</h1>
+<h1>$> Call me interval:) Why so? Wait a bit...</h1>
+<h1>$> Just scroll down...</h1>
+<div id="imageContainer"style="text-align: center; overflow:auto;"> <img onclick="bigger();" id="image" src="photo.jpg" alt="TestPhoto" aligh="middle"> </div>
+<div><p1 style="color:red;" id="showScroll"></p1></div>
+<button ><a href="test.html">Test func</a></button>
+-->
+</body>
+</html>
