@@ -1,74 +1,174 @@
 <!doctype html>
 <html lang="ru">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>тут ничего нет</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      html,
-      body {
-        height: 100%;
-      }
-      body {
-        background: #000;
-        color: #fff;
-        min-height: 100dvh;
-        display: grid;
-        place-items: center;
-        font-family:
-          ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono",
-          "Courier New", monospace;
-        font-size: clamp(1.1rem, 4.5vw, 1.9rem);
-        letter-spacing: 0.02em;
-      }
-      .line {
-        display: inline-flex;
-        align-items: center;
-      }
-      #txt {
-        white-space: pre;
-      }
-      .caret {
-        display: inline-block;
-        width: 0.55ch;
-        height: 1.15em;
-        margin-left: 0.14em;
-        background: #fff;
-        animation: blink 1s steps(1) infinite;
-      }
-      @keyframes blink {
-        50% {
-          opacity: 0;
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>тут ничего нет</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      background:#000;
+      color:#fff;
+      min-height:100dvh;
+      overflow:hidden;
+      font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono","Courier New",monospace;
+    }
+
+    /* field of faint random letters revealed by the "flashlight" */
+    #field{
+      position:fixed;
+      inset:0;
+      z-index:1;
+      pointer-events:none;
+    }
+    #field .l{
+      position:absolute;
+      transform:translate(-50%,-50%);
+      font-size:15px;
+      line-height:1;
+      color:#fff;
+      opacity:0;
+      will-change:opacity;
+    }
+
+    /* soft flashlight halo following the cursor */
+    #beam{
+      position:fixed;
+      z-index:2;
+      width:340px;height:340px;
+      left:0;top:0;
+      margin:-170px 0 0 -170px;
+      border-radius:50%;
+      pointer-events:none;
+      opacity:0;
+      transition:opacity .25s ease;
+      background:radial-gradient(circle,
+        rgba(255,255,255,.05) 0%,
+        rgba(255,255,255,.02) 35%,
+        transparent 70%);
+    }
+
+    /* the actual message, always readable, on top */
+    .line{
+      position:fixed;
+      inset:0;
+      z-index:3;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none;
+    }
+    .type{
+      font-size:clamp(1.1rem,4.5vw,1.9rem);
+      line-height:1;
+      letter-spacing:.02em;
+      white-space:pre;
+      text-shadow:0 0 12px #000,0 0 12px #000;
+    }
+    .caret{
+      display:inline-block;
+      width:.5ch;height:1em;
+      margin-left:.12em;
+      vertical-align:-0.12em;
+      background:#fff;
+      animation:blink 1s steps(1) infinite;
+    }
+    @keyframes blink{50%{opacity:0}}
+    @media (prefers-reduced-motion:reduce){.caret{animation:none}}
+  </style>
+</head>
+<body>
+  <div id="field" aria-hidden="true"></div>
+  <div id="beam"></div>
+  <div class="line"><span class="type"><span id="txt"></span><span class="caret" aria-hidden="true"></span></span></div>
+
+  <script>
+  (function(){
+    "use strict";
+    const field = document.getElementById("field");
+    const beam  = document.getElementById("beam");
+    const CHARS = "0123456789";
+    const R = 150;                 // flashlight radius
+    const SP = 26;                 // grid spacing
+    const DIM = 0;                 // fully hidden outside the beam
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    let cells = [];                // {el,x,y,w,phase}
+    let px = -9999, py = -9999;    // pointer position (offscreen at start)
+
+    function rand(a,b){ return a + Math.random()*(b-a); }
+
+    function build(){
+      field.innerHTML = "";
+      cells = [];
+      const W = innerWidth, H = innerHeight;
+      const cols = Math.ceil(W/SP)+1, rows = Math.ceil(H/SP)+1;
+      const frag = document.createDocumentFragment();
+      for(let r=0;r<rows;r++){
+        for(let c=0;c<cols;c++){
+          const el = document.createElement("span");
+          el.className = "l";
+          el.textContent = CHARS[(Math.random()*CHARS.length)|0];
+          const x = c*SP + SP/2;
+          const y = r*SP + SP/2;
+          el.style.left = x+"px";
+          el.style.top  = y+"px";
+          frag.appendChild(el);
+          cells.push({el:el, x:x, y:y, w:rand(.4,1), phase:rand(0,Math.PI*2)});
         }
       }
-      @media (prefers-reduced-motion: reduce) {
-        .caret {
-          animation: none;
+      field.appendChild(frag);
+    }
+
+    function move(e){
+      const p = e.touches ? e.touches[0] : e;
+      px = p.clientX; py = p.clientY;
+      beam.style.transform = "translate("+px+"px,"+py+"px)";
+      beam.style.opacity = "1";
+    }
+    function leave(){ px = py = -9999; beam.style.opacity = "0"; }
+
+    function frame(t){
+      const R2 = R*R;
+      for(let i=0;i<cells.length;i++){
+        const cell = cells[i];
+        const dx = cell.x - px, dy = cell.y - py;
+        const d2 = dx*dx + dy*dy;
+        let op = DIM;
+        if(d2 < R2){
+          let base = 1 - Math.sqrt(d2)/R;   // 0..1
+          base = base*base;                 // ease
+          const flick = reduce ? 1 : (0.55 + 0.45*Math.sin(t*0.006 + cell.phase));
+          op = DIM + (1-DIM)*base*cell.w*flick;
         }
+        cell.el.style.opacity = op.toFixed(3);
       }
-    </style>
-  </head>
-  <body>
-    <div class="line">
-      <span id="txt"></span><span class="caret" aria-hidden="true"></span>
-    </div>
-    <script>
+      requestAnimationFrame(frame);
+    }
+
+    // typing headline
+    (function(){
       const text = "тут ничего нет";
       const el = document.getElementById("txt");
-      if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        el.textContent = text;
-      } else {
-        let i = 0;
-        (function type() {
-          el.textContent = text.slice(0, i);
-          if (i++ <= text.length) setTimeout(type, 95);
-        })();
-      }
-    </script>
-  </body>
+      if(reduce){ el.textContent = text; return; }
+      let i = 0;
+      (function type(){
+        el.textContent = text.slice(0,i);
+        if(i++ <= text.length) setTimeout(type, 95);
+      })();
+    })();
+
+    let rz;
+    addEventListener("resize", function(){ clearTimeout(rz); rz = setTimeout(build, 150); });
+    addEventListener("pointermove", move, {passive:true});
+    addEventListener("pointerdown", move, {passive:true});
+    addEventListener("pointerleave", leave);
+    addEventListener("touchmove", move, {passive:true});
+
+    build();
+    requestAnimationFrame(frame);
+  })();
+  </script>
+</body>
 </html>
