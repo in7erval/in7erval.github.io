@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>тут ничего нет</title>
+    <title>привет миру</title>
     <style>
       * {
         margin: 0;
@@ -405,25 +405,52 @@
         }
         applyColors(RGB[0].bg, RGB[0].fg); // initial (and the static palette when motion is reduced)
 
-        // ---- looping headline: type, hold, erase, retype ----
+        // ---- looping headline: "hello" around the world ----
         (function () {
-          const WORDS = ["тут", "ничего", "нет"];
+          // greetings in many languages of the world
+          const HELLOS = [
+            "Привет", // Russian
+            "Hello", // English
+            "Hola", // Spanish
+            "Bonjour", // French
+            "Hallo", // German
+            "Ciao", // Italian
+            "Olá", // Portuguese
+            "こんにちは", // Japanese
+            "你好", // Chinese
+            "안녕하세요", // Korean
+            "مرحبا", // Arabic
+            "שלום", // Hebrew
+            "नमस्ते", // Hindi
+            "Γειά σου", // Greek
+            "Merhaba", // Turkish
+            "Cześć", // Polish
+            "Ahoj", // Czech
+            "Hej", // Swedish
+            "Hei", // Finnish
+            "Salut", // Romanian
+            "Sveiki", // Latvian
+            "Labas", // Lithuanian
+            "Zdravo", // Serbian/Croatian
+            "Здравейте", // Bulgarian
+            "Привіт", // Ukrainian
+            "Сәлем", // Kazakh
+            "Xin chào", // Vietnamese
+            "สวัสดี", // Thai
+            "Halo", // Indonesian
+            "Kamusta", // Filipino
+            "Jambo", // Swahili
+            "Sawubona", // Zulu
+            "Namaste", // Nepali
+            "Sannu", // Hausa
+            "Aloha", // Hawaiian
+          ];
           const el = document.getElementById("txt");
-          let text = "тут ничего нет"; // first pass: the real phrase
-          function shuffled() {
-            const a = WORDS.slice();
-            for (let i = a.length - 1; i > 0; i--) {
-              const j = (Math.random() * (i + 1)) | 0;
-              const t = a[i];
-              a[i] = a[j];
-              a[j] = t;
-            }
-            return a.join(" ");
-          }
+          let text = HELLOS[0]; // first pass: "Привет"
           function next() {
             let t;
             do {
-              t = shuffled();
+              t = HELLOS[(Math.random() * HELLOS.length) | 0];
             } while (t === text);
             text = t;
           }
