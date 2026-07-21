@@ -213,22 +213,22 @@
       }
       @keyframes glitchShift {
         0% {
-          transform: translate(0, 0);
+          transform: scale(1.05) translate(0, 0);
         }
         20% {
-          transform: translate(-4px, 1px);
+          transform: scale(1.05) translate(-4px, 1px);
         }
         40% {
-          transform: translate(4px, -2px);
+          transform: scale(1.05) translate(4px, -2px);
         }
         60% {
-          transform: translate(-3px, 0);
+          transform: scale(1.05) translate(-3px, 0);
         }
         80% {
-          transform: translate(3px, 1px);
+          transform: scale(1.05) translate(3px, 1px);
         }
         100% {
-          transform: translate(0, 0);
+          transform: scale(1.05) translate(0, 0);
         }
       }
       @keyframes glitchSplit {
@@ -288,35 +288,45 @@
         animation: blink 1s steps(1) infinite;
       }
 
-      /* --- convex CRT glass: curvature, edge falloff, glossy highlight --- */
+      /* --- convex CRT glass: heavy tube bezel + curvature + glossy sheen --- */
       .glass {
         position: fixed;
         inset: 0;
         z-index: 8;
         pointer-events: none;
-        border-radius: 5.5vmin; /* rounded tube corners */
+        /* chunky rounded frame of the tube — the obvious "screen" edge */
+        border: clamp(10px, 2.6vmin, 30px) solid #000;
+        border-radius: clamp(24px, 6vmin, 70px);
         box-shadow:
-          inset 0 0 11vmin 3vmin rgba(0, 0, 0, 0.5),
-          /* curved edge darkening = the bulge */ inset 0 0 0 1px
-            rgba(255, 255, 255, 0.05); /* faint rim light */
+          inset 0 0 16vmin 4vmin rgba(0, 0, 0, 0.85),
+          /* strong curved edge falloff = the bulge */
+          inset 0 0 0 2px rgba(255, 255, 255, 0.08),
+          /* bright inner rim of the glass */ inset 0 0 3vmin 0
+            rgba(120, 200, 255, 0.06); /* faint cool tube glow */
         background:
           radial-gradient(
-            140% 100% at 50% -12%,
-            rgba(255, 255, 255, 0.13) 0%,
-            rgba(255, 255, 255, 0.05) 16%,
-            rgba(255, 255, 255, 0) 40%
+            120% 78% at 50% -8%,
+            rgba(255, 255, 255, 0.22) 0%,
+            rgba(255, 255, 255, 0.08) 14%,
+            rgba(255, 255, 255, 0) 46%
           ),
           /* top glossy sheen */
             radial-gradient(
-              120% 120% at 50% 116%,
-              rgba(255, 255, 255, 0.05) 0%,
-              rgba(255, 255, 255, 0) 32%
-            ); /* soft bottom reflection */
+              120% 90% at 50% 118%,
+              rgba(255, 255, 255, 0.08) 0%,
+              rgba(255, 255, 255, 0) 34%
+            ),
+          /* bottom reflection */
+            radial-gradient(
+              130% 130% at 50% 50%,
+              rgba(0, 0, 0, 0) 55%,
+              rgba(0, 0, 0, 0.45) 100%
+            ); /* corner darkening reinforcing the curve */
       }
-      /* the picture itself bows outward a touch, strongest at the centre */
+      /* content overscans a little so its edges tuck under the curved bezel */
       #field {
         transform-origin: 50% 50%;
-        transform: perspective(1400px) scale(1.012);
+        transform: scale(1.05);
       }
 
       @media (prefers-reduced-motion: reduce) {
