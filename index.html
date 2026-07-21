@@ -329,6 +329,137 @@
         transform: scale(1.05);
       }
 
+      /* --- degauss: magnetic wobble + expanding colour ring + brightness surge --- */
+      #degauss {
+        position: fixed;
+        inset: 0;
+        z-index: 9;
+        pointer-events: none;
+        opacity: 0;
+        background: radial-gradient(
+          circle at 50% 50%,
+          rgba(255, 255, 255, 0.16) 0%,
+          rgba(255, 255, 255, 0) 60%
+        );
+        mix-blend-mode: screen;
+      }
+      #degauss::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 40vmax;
+        height: 40vmax;
+        margin: -20vmax 0 0 -20vmax;
+        border-radius: 50%;
+        transform: scale(0.05);
+        background: radial-gradient(
+          circle,
+          transparent 36%,
+          rgba(255, 0, 90, 0.35) 44%,
+          rgba(255, 230, 0, 0.25) 49%,
+          rgba(0, 200, 255, 0.35) 55%,
+          transparent 64%
+        );
+      }
+      body.degaussing #degauss {
+        animation: degaussFlash 1.1s ease-out both;
+      }
+      body.degaussing #degauss::before {
+        animation: degaussRing 1.1s cubic-bezier(0.15, 0.6, 0.3, 1) both;
+      }
+      body.degaussing #field {
+        animation: degaussWarp 1.1s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+      }
+      body.degaussing .type {
+        animation: degaussFringe 1.1s ease-out both;
+      }
+      @keyframes degaussFlash {
+        0% {
+          opacity: 0;
+        }
+        6% {
+          opacity: 0.55;
+        }
+        30% {
+          opacity: 0.14;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+      @keyframes degaussRing {
+        0% {
+          transform: scale(0.05);
+          opacity: 0;
+        }
+        12% {
+          opacity: 0.95;
+        }
+        100% {
+          transform: scale(3.4);
+          opacity: 0;
+        }
+      }
+      @keyframes degaussWarp {
+        /* damped magnetic oscillation, settling back to the base scale(1.05) */
+        0% {
+          transform: scale(1.05);
+          filter: brightness(1) saturate(1);
+        }
+        8% {
+          transform: scale(1.09) skewX(2deg) translate(7px, -5px);
+          filter: brightness(1.7) saturate(1.6);
+        }
+        20% {
+          transform: scale(1.03) skewX(-1.6deg) translate(-6px, 4px);
+          filter: brightness(1.25) saturate(1.3);
+        }
+        34% {
+          transform: scale(1.075) skewX(1.1deg) translate(5px, -3px);
+          filter: brightness(1.12);
+        }
+        50% {
+          transform: scale(1.04) skewX(-0.7deg) translate(-3px, 2px);
+        }
+        68% {
+          transform: scale(1.062) skewX(0.4deg) translate(2px, -1px);
+        }
+        84% {
+          transform: scale(1.048) skewX(-0.2deg) translate(-1px, 1px);
+        }
+        100% {
+          transform: scale(1.05) skewX(0) translate(0, 0);
+          filter: brightness(1) saturate(1);
+        }
+      }
+      @keyframes degaussFringe {
+        0% {
+          text-shadow: 0 0 8px currentColor;
+        }
+        10% {
+          text-shadow:
+            -7px 0 rgba(255, 0, 90, 0.9),
+            7px 0 rgba(0, 200, 255, 0.9),
+            0 0 14px currentColor;
+        }
+        30% {
+          text-shadow:
+            4px 0 rgba(255, 0, 90, 0.8),
+            -4px 0 rgba(0, 200, 255, 0.8),
+            0 0 10px currentColor;
+        }
+        55% {
+          text-shadow:
+            -2px 0 rgba(255, 0, 90, 0.6),
+            2px 0 rgba(0, 200, 255, 0.6),
+            0 0 9px currentColor;
+        }
+        100% {
+          text-shadow: 0 0 8px currentColor;
+        }
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .caret {
           animation: none;
@@ -345,6 +476,12 @@
         body.glitching .type {
           animation: none;
         }
+        body.degaussing #degauss,
+        body.degaussing #degauss::before,
+        body.degaussing #field,
+        body.degaussing .type {
+          animation: none;
+        }
       }
     </style>
   </head>
@@ -358,6 +495,7 @@
     </div>
     <div class="crt" aria-hidden="true"></div>
     <div id="glitch" aria-hidden="true"></div>
+    <div id="degauss" aria-hidden="true"></div>
     <div class="glass" aria-hidden="true"></div>
     <div id="boot" aria-hidden="true"><pre id="bootlog"></pre></div>
 
@@ -804,6 +942,8 @@
             "",
             "greeting visitor > " + VISITOR.greeting,
             "",
+            "hint: double-click or press [D] to degauss",
+            "",
             "READY.",
           ];
           function finish() {
@@ -856,6 +996,84 @@
             }, rand(2600, 7200));
           }
           loop();
+        })();
+
+        // ---- degauss: the classic CRT "de-magnetise" wobble + thunk ----
+        (function () {
+          const b = document.body;
+          let degaussTO = 0;
+          let actx = null;
+
+          // low sine drop + a short burst of noise = the "bdvvm" thunk
+          function thunk() {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return;
+            try {
+              actx = actx || new AC();
+              if (actx.state === "suspended") actx.resume();
+              const t0 = actx.currentTime;
+              const o = actx.createOscillator();
+              const g = actx.createGain();
+              o.type = "sine";
+              o.frequency.setValueAtTime(150, t0);
+              o.frequency.exponentialRampToValueAtTime(42, t0 + 0.22);
+              g.gain.setValueAtTime(0.0001, t0);
+              g.gain.exponentialRampToValueAtTime(0.32, t0 + 0.012);
+              g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.4);
+              o.connect(g).connect(actx.destination);
+              o.start(t0);
+              o.stop(t0 + 0.42);
+
+              const n = actx.createBufferSource();
+              const buf = actx.createBuffer(
+                1,
+                (actx.sampleRate * 0.16) | 0,
+                actx.sampleRate,
+              );
+              const d = buf.getChannelData(0);
+              for (let i = 0; i < d.length; i++) {
+                d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+              }
+              n.buffer = buf;
+              const ng = actx.createGain();
+              ng.gain.setValueAtTime(0.09, t0);
+              ng.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.16);
+              n.connect(ng).connect(actx.destination);
+              n.start(t0);
+            } catch (e) {}
+          }
+
+          function degauss(sound) {
+            if (reduce) return;
+            b.classList.remove("degaussing");
+            void b.offsetWidth; // reflow so the animation retriggers
+            b.classList.add("degaussing");
+            if (sound) thunk();
+            clearTimeout(degaussTO);
+            degaussTO = setTimeout(function () {
+              b.classList.remove("degaussing");
+            }, 1150);
+          }
+
+          // user-driven: double-click or press [D] (sound needs the gesture)
+          addEventListener("dblclick", function () {
+            degauss(true);
+          });
+          addEventListener("keydown", function (e) {
+            if ((e.key === "d" || e.key === "D") && !e.metaKey && !e.ctrlKey) {
+              degauss(true);
+            }
+          });
+          // power-on feel: silent degauss after boot, and when you return to the tab
+          addEventListener("visibilitychange", function () {
+            if (!document.hidden) degauss(false);
+          });
+          setTimeout(function () {
+            degauss(false);
+          }, 3200);
+
+          // let the rest of the page reach it (e.g. a future button)
+          window.__degauss = degauss;
         })();
 
         build();
