@@ -288,6 +288,37 @@
         animation: blink 1s steps(1) infinite;
       }
 
+      /* --- convex CRT glass: curvature, edge falloff, glossy highlight --- */
+      .glass {
+        position: fixed;
+        inset: 0;
+        z-index: 8;
+        pointer-events: none;
+        border-radius: 5.5vmin; /* rounded tube corners */
+        box-shadow:
+          inset 0 0 11vmin 3vmin rgba(0, 0, 0, 0.5),
+          /* curved edge darkening = the bulge */ inset 0 0 0 1px
+            rgba(255, 255, 255, 0.05); /* faint rim light */
+        background:
+          radial-gradient(
+            140% 100% at 50% -12%,
+            rgba(255, 255, 255, 0.13) 0%,
+            rgba(255, 255, 255, 0.05) 16%,
+            rgba(255, 255, 255, 0) 40%
+          ),
+          /* top glossy sheen */
+            radial-gradient(
+              120% 120% at 50% 116%,
+              rgba(255, 255, 255, 0.05) 0%,
+              rgba(255, 255, 255, 0) 32%
+            ); /* soft bottom reflection */
+      }
+      /* the picture itself bows outward a touch, strongest at the centre */
+      #field {
+        transform-origin: 50% 50%;
+        transform: perspective(1400px) scale(1.012);
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .caret {
           animation: none;
@@ -317,6 +348,7 @@
     </div>
     <div class="crt" aria-hidden="true"></div>
     <div id="glitch" aria-hidden="true"></div>
+    <div class="glass" aria-hidden="true"></div>
     <div id="boot" aria-hidden="true"><pre id="bootlog"></pre></div>
 
     <script>
@@ -328,6 +360,67 @@
         const SP = 26; // grid spacing
         const DIM = 0; // fully hidden outside the beam
         const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        // ---- who's visiting: locale, timezone, local time, native greeting ----
+        const VISITOR = (function () {
+          const raw = (navigator.language || "en").trim();
+          const code = raw.toLowerCase().split("-")[0];
+          const GREET = {
+            en: "Hello",
+            ru: "Привет",
+            es: "Hola",
+            fr: "Bonjour",
+            de: "Hallo",
+            it: "Ciao",
+            pt: "Olá",
+            ja: "こんにちは",
+            zh: "你好",
+            ko: "안녕하세요",
+            ar: "مرحبا",
+            he: "שלום",
+            hi: "नमस्ते",
+            el: "Γειά σου",
+            tr: "Merhaba",
+            pl: "Cześć",
+            cs: "Ahoj",
+            sv: "Hej",
+            fi: "Hei",
+            ro: "Salut",
+            lv: "Sveiki",
+            lt: "Labas",
+            sr: "Zdravo",
+            hr: "Zdravo",
+            bg: "Здравейте",
+            uk: "Привіт",
+            kk: "Сәлем",
+            vi: "Xin chào",
+            th: "สวัสดี",
+            id: "Halo",
+            fil: "Kamusta",
+            tl: "Kamusta",
+            sw: "Jambo",
+            zu: "Sawubona",
+            ne: "Namaste",
+            ha: "Sannu",
+            haw: "Aloha",
+          };
+          let tz = "",
+            time = "";
+          try {
+            tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+            time = new Intl.DateTimeFormat([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            }).format(new Date());
+          } catch (e) {}
+          return {
+            locale: raw,
+            greeting: GREET[code] || GREET[raw.toLowerCase()] || "Hello",
+            tz: tz,
+            time: time,
+          };
+        })();
 
         // scroll trades beam width vs brightness: 0 = narrow+bright, 1 = wide+faint, .5 = default
         let spread = 0.5,
@@ -611,7 +704,7 @@
             "Aloha", // Hawaiian
           ];
           const el = document.getElementById("txt");
-          let text = HELLOS[0]; // first pass: "Привет"
+          let text = VISITOR.greeting; // first pass: greeting in the visitor's language
           function next() {
             let t;
             do {
@@ -681,15 +774,25 @@
           const boot = document.getElementById("boot");
           const log = document.getElementById("bootlog");
           if (!boot || !log) return;
+          // pad a label to a fixed width with dots, then append the value
+          function row(label, value) {
+            const dots = ".".repeat(Math.max(3, 33 - label.length));
+            return label + " " + dots + " " + value;
+          }
           const lines = [
             "RETICULUM TERMINAL  v3.7.1",
             "(c) macrodata refinement division",
             "",
-            "initializing display ............ OK",
-            "loading character matrix ........ OK",
-            "calibrating flashlight .......... OK",
-            "mounting /dev/greetings ......... OK",
-            "spawning numbers ................ OK",
+            row("detecting locale", VISITOR.locale),
+            row("resolving timezone", VISITOR.tz || "unknown"),
+            row("local time", VISITOR.time || "--:--"),
+            row("initializing display", "OK"),
+            row("loading character matrix", "OK"),
+            row("calibrating flashlight", "OK"),
+            row("mounting /dev/greetings", "OK"),
+            row("spawning numbers", "OK"),
+            "",
+            "greeting visitor > " + VISITOR.greeting,
             "",
             "READY.",
           ];
@@ -710,8 +813,9 @@
               log.textContent += (i ? "\n" : "") + lines[i];
               const line = lines[i];
               i++;
-              // blank lines flick by; "OK" lines land with a beat of latency
-              const delay = line === "" ? 55 : /OK$/.test(line) ? rand(140, 260) : rand(90, 160);
+              // blank lines flick by; dotted "loading" rows land with a beat of latency
+              const delay =
+                line === "" ? 55 : /\.{3,}/.test(line) ? rand(130, 250) : rand(90, 160);
               setTimeout(step, delay);
             } else {
               setTimeout(finish, 550);
