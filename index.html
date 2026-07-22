@@ -319,6 +319,24 @@
         transform: scale(1.05);
       }
 
+      /* hidden clickable links woven into the digit field; the same overscan
+         transform as #field keeps each anchor exactly over its drawn letters */
+      #links {
+        position: fixed;
+        inset: 0;
+        z-index: 5;
+        pointer-events: none;
+        transform-origin: 50% 50%;
+        transform: scale(1.05);
+      }
+      #links a {
+        position: absolute;
+        display: block;
+        pointer-events: none; /* enabled per-word only while the beam reveals it */
+        cursor: pointer;
+        text-decoration: none;
+      }
+
       /* --- degauss: magnetic wobble + expanding colour ring + brightness surge --- */
       #degauss {
         position: fixed;
@@ -477,6 +495,7 @@
   </head>
   <body>
     <canvas id="field" aria-hidden="true"></canvas>
+    <div id="links"></div>
     <div id="beam"></div>
     <div class="line">
       <span class="type"
@@ -494,6 +513,7 @@
         "use strict";
         const field = document.getElementById("field");
         const ctx = field.getContext("2d");
+        const links = document.getElementById("links");
         const beam = document.getElementById("beam");
         const CHARS = "0123456789";
         // cap the backing store so hi-dpi screens don't allocate a giant buffer
@@ -631,6 +651,58 @@
               });
             }
           }
+          placeWords();
+        }
+
+        // ---- hidden easter-egg links woven into the digit field ----
+        const WORDS = [
+          { text: "in7erval", url: "https://github.com/in7erval" },
+          { text: "WALL-E 2.0", url: "https://github.com/in7erval/Wall-e-2.0" },
+          { text: "ALLCONNECT", url: "https://github.com/in7erval/allconnect" },
+        ];
+        let linkWords = []; // { a: <anchor>, cells: [...], on: bool }
+
+        // drop each word into a grid row (its letters replace the random digits)
+        // and lay a transparent, per-word clickable anchor exactly over it
+        function placeWords() {
+          links.innerHTML = "";
+          linkWords = [];
+          if (!cols || !rows) return;
+          const fracs = [0.17, 0.7, 0.85]; // vertical spots, clear of the centre
+          for (let wi = 0; wi < WORDS.length; wi++) {
+            const word = WORDS[wi];
+            const len = word.text.length;
+            if (len >= cols) continue; // doesn't fit this viewport
+            const r = Math.min(
+              rows - 2,
+              Math.max(1, Math.round(rows * fracs[wi % fracs.length])),
+            );
+            const maxStart = cols - len - 1;
+            const c0 =
+              maxStart <= 1 ? 0 : 1 + ((Math.random() * (maxStart - 1)) | 0);
+            const wcells = [];
+            for (let k = 0; k < len; k++) {
+              const cell = cells[r * cols + (c0 + k)];
+              if (!cell) continue;
+              cell.ch = word.text.charAt(k);
+              cell.link = true; // exempt from the random digit-flip
+              wcells.push(cell);
+            }
+            if (!wcells.length) continue;
+            const a = document.createElement("a");
+            a.href = word.url;
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+            a.title = word.text;
+            a.setAttribute("aria-label", word.text);
+            a.tabIndex = -1;
+            a.style.left = c0 * SP + "px";
+            a.style.top = r * SP + "px";
+            a.style.width = len * SP + "px";
+            a.style.height = SP + "px";
+            links.appendChild(a);
+            linkWords.push({ a: a, cells: wcells, on: false });
+          }
         }
 
         function move(e) {
@@ -765,7 +837,8 @@
               ctx.fillText(cell.ch, 0, 0);
               ctx.restore();
               // occasionally a bright cell flips its digit — restless, alive
-              if (g > 0.55 && Math.random() < 0.02) {
+              // (link cells keep their letter so the hidden words stay legible)
+              if (!cell.link && g > 0.55 && Math.random() < 0.02) {
                 cell.ch = CHARS[(Math.random() * CHARS.length) | 0];
               }
             } else {
@@ -775,6 +848,21 @@
           }
           activeList.length = w;
           ctx.shadowBlur = 0;
+
+          // a hidden word's link only becomes clickable while the beam lights it
+          // (so the cursor turns into a pointer right as the word is revealed)
+          for (let i = 0; i < linkWords.length; i++) {
+            const lw = linkWords[i];
+            let mg = 0;
+            for (let j = 0; j < lw.cells.length; j++) {
+              if (lw.cells[j].g > mg) mg = lw.cells[j].g;
+            }
+            const on = mg > 0.45;
+            if (on !== lw.on) {
+              lw.on = on;
+              lw.a.style.pointerEvents = on ? "auto" : "none";
+            }
+          }
 
           // beam halo follows the (eased) beam, scales with width, fades with intensity
           beam.style.transform =
