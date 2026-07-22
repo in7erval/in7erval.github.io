@@ -723,10 +723,14 @@
 
           // --- draw only the glowing/fading cells straight to the canvas ---
           ctx.clearRect(0, 0, W, H);
-          const col = rgb(curFg);
-          ctx.fillStyle = col;
-          ctx.shadowColor = col; // canvas glow, replacing per-span text-shadow
-          ctx.shadowBlur = 6;
+          // bake the per-cell alpha into BOTH fill and shadow colour instead of
+          // using globalAlpha: WebKit/Safari doesn't fade a fillText shadow by
+          // globalAlpha, so faint edge cells kept a full-strength halo and the
+          // beam's soft falloff washed out into a solid patch of digits.
+          const cr = curFg[0],
+            cg = curFg[1],
+            cb = curFg[2];
+          ctx.shadowBlur = 6; // canvas glow, replacing per-span text-shadow
           let w = 0;
           for (let i = 0; i < activeList.length; i++) {
             const cell = activeList[i];
@@ -739,7 +743,10 @@
               cell.active = false; // fully dark again: drop from the list
               continue;
             }
-            ctx.globalAlpha = g;
+            const col =
+              "rgba(" + cr + "," + cg + "," + cb + "," + g.toFixed(3) + ")";
+            ctx.fillStyle = col;
+            ctx.shadowColor = col;
 
             // --- "scary numbers": cells under the beam tremble & pulse ---
             if (!reduce && g > 0.05) {
@@ -767,7 +774,6 @@
             activeList[w++] = cell; // keep survivors, compacting the list
           }
           activeList.length = w;
-          ctx.globalAlpha = 1;
           ctx.shadowBlur = 0;
 
           // beam halo follows the (eased) beam, scales with width, fades with intensity
