@@ -927,6 +927,96 @@
             const dots = ".".repeat(Math.max(3, 33 - label.length));
             return label + " " + dots + " " + value;
           }
+
+          function truncate(s, n) {
+            s = String(s);
+            return s.length > n ? s.slice(0, n - 1) + "…" : s;
+          }
+
+          // whatever the browser willingly tells us about the visitor
+          function probeDump() {
+            const s = window.screen || {};
+            const nav = navigator;
+            const conn =
+              nav.connection || nav.mozConnection || nav.webkitConnection;
+            return [
+              "",
+              "> fingerprinting visitor",
+              row(
+                "platform",
+                nav.platform ||
+                  (nav.userAgentData && nav.userAgentData.platform) ||
+                  "?",
+              ),
+              row("cpu threads", nav.hardwareConcurrency || "?"),
+              row("device memory", nav.deviceMemory ? nav.deviceMemory + " GB" : "?"),
+              row(
+                "screen",
+                (s.width || "?") +
+                  "x" +
+                  (s.height || "?") +
+                  " @" +
+                  (window.devicePixelRatio || 1) +
+                  "x",
+              ),
+              row("viewport", innerWidth + "x" + innerHeight),
+              row("touch points", nav.maxTouchPoints || 0),
+              row("connection", conn && conn.effectiveType ? conn.effectiveType : "?"),
+              row("network", nav.onLine ? "online" : "offline"),
+              row("cookies", nav.cookieEnabled ? "enabled" : "disabled"),
+              row("do-not-track", nav.doNotTrack === "1" ? "on" : "off"),
+              "user agent:",
+              "  " + truncate(nav.userAgent, 120),
+            ];
+          }
+
+          // dump a Web Storage area (localStorage / sessionStorage)
+          function storageDump(label, store) {
+            let n;
+            try {
+              n = store.length;
+            } catch (e) {
+              return [row(label, "blocked")];
+            }
+            const out = [
+              row(label, n + (n === 1 ? " key" : " keys")),
+            ];
+            for (let i = 0; i < n && i < 8; i++) {
+              const k = store.key(i);
+              let v = "";
+              try {
+                v = store.getItem(k);
+              } catch (e) {}
+              out.push("  " + truncate(k, 24) + " = " + truncate(v, 40));
+            }
+            if (n > 8) out.push("  … +" + (n - 8) + " more");
+            return out;
+          }
+
+          // dump this site's readable cookies (same-origin, non-HttpOnly only —
+          // the browser sandbox forbids reading any other site's cookies)
+          function cookieDump() {
+            const jar = document.cookie ? document.cookie.split("; ") : [];
+            const out = [
+              "",
+              row("reading cookies", jar.length + (jar.length === 1 ? " entry" : " entries")),
+            ];
+            if (!jar.length) {
+              out.push("  <the cookie jar is empty>");
+              return out;
+            }
+            jar.forEach(function (c) {
+              const eq = c.indexOf("=");
+              const k = eq >= 0 ? c.slice(0, eq) : c;
+              let v = eq >= 0 ? c.slice(eq + 1) : "";
+              try {
+                v = decodeURIComponent(v);
+              } catch (e) {}
+              out.push("  " + k + " = " + (v || "∅"));
+            });
+            return out;
+          }
+
           const lines = [
             "RETICULUM TERMINAL  v3.7.1",
             "(c) macrodata refinement division",
@@ -939,13 +1029,21 @@
             row("calibrating flashlight", "OK"),
             row("mounting /dev/greetings", "OK"),
             row("spawning numbers", "OK"),
-            "",
-            "greeting visitor > " + VISITOR.greeting,
-            "",
-            "hint: double-click or press [D] to degauss",
-            "",
-            "READY.",
-          ];
+          ]
+            .concat(probeDump())
+            .concat([""])
+            .concat(cookieDump())
+            .concat([""])
+            .concat(storageDump("localStorage", window.localStorage))
+            .concat(storageDump("sessionStorage", window.sessionStorage))
+            .concat([
+              "",
+              "greeting visitor > " + VISITOR.greeting,
+              "",
+              "hint: double-click or press [D] to degauss",
+              "",
+              "READY.",
+            ]);
           function finish() {
             boot.classList.add("done");
             setTimeout(function () {
@@ -954,6 +1052,7 @@
           }
           if (reduce) {
             log.textContent = lines.join("\n");
+            boot.scrollTop = boot.scrollHeight;
             setTimeout(finish, 700);
             return;
           }
@@ -961,6 +1060,7 @@
           (function step() {
             if (i < lines.length) {
               log.textContent += (i ? "\n" : "") + lines[i];
+              boot.scrollTop = boot.scrollHeight; // keep the newest line in view
               const line = lines[i];
               i++;
               // blank lines flick by; dotted "loading" rows land with a beat of latency
